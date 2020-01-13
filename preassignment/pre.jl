@@ -1,34 +1,70 @@
 import PyPlot
 import Polynomials
 
-function main()
-    steps = 75                  # Number of steps per walk
-    N = 100000                   # Number of walks
+#=
+    TFY4235 – Pre-assignment
+    A program that simulates random walks and calclutates the probability of
+    returing to 0 as a function of time.
+=#
 
-    # Generates N random walks of length step_max
-    rand_walks = cumsum((rand([-1,1], steps, N)), dims=1)
-    data = zeros(Int, floor(Int, steps/2))
-    for j = 1:N
-        i = 2
-        found = false
-        while (!found) & (i <= steps)
-            if rand_walks[i, j] == 0
-                data[floor(Int, i/2)] += 1
-                found = true
-            end
-            i += 2
-        end
-    end
-    ln_data = map(log, data)
-    t = collect(1:floor(Int, steps/2))
+
+# Plots the probability and finds the fitting curve. Assuming p(t) = t^(-k)
+function dataout(steps::Int, prob::Array{Int, 1})
+    ln_prob = map(log, prob)
+    t = collect(1:steps-1)
     ln_t = map(log, t)
 
-    coeff = Polynomials.coeffs(Polynomials.polyfit(ln_t, ln_data, 1))
+    # Finds the fitting curve to the data
+    pol = Polynomials.polyfit(ln_t, ln_prob, 1)
+    coeff = Polynomials.coeffs(Polynomials.polyfit(ln_t, ln_prob, 1))
     fit = map((x)->coeff[1] + coeff[2]*x, ln_t)
 
-    PyPlot.plot(ln_t, ln_data, ln_t, fit)
+    # Plotting of result
+    PyPlot.plot(ln_t, ln_prob, ln_t, fit)
     PyPlot.show()
+    println(coeff[2])
+end
+
+
+#=
+    Generates 'N' random walks of length 'steps'. Each step has length between
+    (-1, 1).
+=#
+function randwalk(steps::Int, N::Int)
+    rand_num = map((x)->2*x - 1, rand(steps, N))
+    return cumsum(rand_num, dims=1)
+end
+
+
+#=
+    Takes a set of random walks and returns the distribution of when each return
+    to zero
+=#
+function prob_return(steps::Int, N::Int, rand_walk::Array{Float64, 2})
+    prob = zeros(Int, steps-1)
+    for j = 1:N
+        sig = 0
+        for i = 1:steps
+            if sig == 0
+                sig = sign(rand_walk[i, j])
+            elseif sign(rand_walk[i, j]) != sig
+                prob[i-1] += 1
+                break
+            end
+        end
+    end
+    return prob
+end
+
+function main()
+    steps = 100                 # Number of steps per walk
+    N = 400000                  # Number of walks
+
+    rand_walk = randwalk(steps, N)
+
+    prob = prob_return(steps, N, rand_walk)
+
+    dataout(steps, prob)
 end
 
 @time main()
-
