@@ -60,10 +60,11 @@ function main()
     steps = 100                 # Number of steps per walk
     N = 400000                  # Number of walks
 
+    # Generate random walks
     rand_walk = randwalk(steps, N)
-
+    # Find when walk returns to zero
     prob = prob_return(steps, N, rand_walk)
-
+    # Find fitting curve and present data
     dataout(steps, prob)
 end
 
