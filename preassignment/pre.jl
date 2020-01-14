@@ -32,6 +32,7 @@ end
 =#
 function randwalk(steps::Int, N::Int)
     rand_num = map((x)->2*x - 1, rand(steps, N))
+    # rand_num = Random.randn!(Random.MersenneTwister(), zeros(steps, N))
     return cumsum(rand_num, dims=1)
 end
 
@@ -57,15 +58,15 @@ function prob_return(steps::Int, N::Int, rand_walk::Array{Float64, 2})
 end
 
 function main()
-    steps = 100                 # Number of steps per walk
-    N = 400000                  # Number of walks
+    steps = 150                 # Number of steps per walk
+    N = 2000000                  # Number of walks
 
     # Generate random walks
-    rand_walk = randwalk(steps, N)
+    @time rand_walk = randwalk(steps, N)
     # Find when walk returns to zero
-    prob = prob_return(steps, N, rand_walk)
+    @time prob = prob_return(steps, N, rand_walk)
     # Find fitting curve and present data
-    dataout(steps, prob)
+    @time dataout(steps, prob)
 end
 
 @time main()
